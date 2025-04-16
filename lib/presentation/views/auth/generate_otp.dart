@@ -12,6 +12,9 @@ class GenerateOtp extends StatelessWidget {
       listener: (context, state) {
         if (state is OtpSentSuccess) {
           print("OTP Sent Success: ${state.verificationId}");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('OTP Sent to: ${state.phone}')),
+          );
           Navigator.pushNamed(
             context,
             '/verifyOtp',
@@ -23,7 +26,7 @@ class GenerateOtp extends StatelessWidget {
         } else if (state is OtpSentFailed) {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)));
-        } else if (state is OtpLoading) {
+        } else if (state is OtpSentInProgress) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('sending otp...'))
           );

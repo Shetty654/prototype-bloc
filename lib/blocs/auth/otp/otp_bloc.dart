@@ -19,8 +19,7 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
 
   Future<void> _onOtpSendPressed(
       OtpSendPressed event, Emitter<OtpState> emit) async {
-    emit(OtpLoading());
-
+    emit(OtpSentInProgress());
     try {
       final verificationId = await authRepository.sendCode(event.phone);
       emit(OtpSentSuccess(phone: event.phone, verificationId: verificationId));
@@ -31,7 +30,7 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
 
   Future<void> _onOtpVerifyPressed(
       OtpVerifyPressed event, Emitter<OtpState> emit) async {
-    emit(OtpLoading());
+    emit(OtpVerificationInProgress());
 
     try {
       final user = await authRepository.verifyCode(

@@ -12,8 +12,14 @@ class VerifyOtp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TextEditingController otpController = TextEditingController();
+
     return BlocListener<OtpBloc, OtpState>(
       listener: (context, state) {
+        if(state is OtpVerificationInProgress){
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('verifying otp...'))
+          );
+        }
         if(state is OtpVerificationSuccess){
           Navigator.pushNamedAndRemoveUntil(
             context,
