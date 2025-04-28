@@ -10,6 +10,6 @@ class OtpSendPressed extends OtpEvent{
 
 class OtpVerifyPressed extends OtpEvent{
   String otp;
-  String verificationId;
-  OtpVerifyPressed({required this.otp, required this.verificationId});
+  String phone;
+  OtpVerifyPressed({required this.otp, required this.phone});
 }

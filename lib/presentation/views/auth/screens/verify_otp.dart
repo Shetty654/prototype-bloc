@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:prototype_bloc/blocs/auth/otp/otp_bloc.dart';
+import 'package:CAPO/blocs/otp/otp_bloc.dart';
 
 class VerifyOtp extends StatelessWidget {
   final String phone;
-  final String verificationId;
 
   const VerifyOtp(
-      {super.key, required this.phone, required this.verificationId});
+      {super.key, required this.phone});
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +56,7 @@ class VerifyOtp extends StatelessWidget {
                 child: ElevatedButton(onPressed: () {
                   String otp = otpController.text;
                   BlocProvider.of<OtpBloc>(context).add(
-                    OtpVerifyPressed(verificationId: verificationId, otp: otp),
+                    OtpVerifyPressed(phone: phone, otp: otp),
                   );
                 }, child: Text('VERIFY OTP')),
               ),

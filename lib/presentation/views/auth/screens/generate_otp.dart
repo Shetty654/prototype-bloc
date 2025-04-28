@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:prototype_bloc/blocs/auth/otp/otp_bloc.dart';
+import 'package:CAPO/blocs/otp/otp_bloc.dart';
 
 class GenerateOtp extends StatelessWidget {
   const GenerateOtp({super.key});
@@ -11,7 +11,6 @@ class GenerateOtp extends StatelessWidget {
     return BlocListener<OtpBloc, OtpState>(
       listener: (context, state) {
         if (state is OtpSentSuccess) {
-          print("OTP Sent Success: ${state.verificationId}");
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('OTP Sent to: ${state.phone}')),
           );
@@ -20,7 +19,6 @@ class GenerateOtp extends StatelessWidget {
             '/verifyOtp',
             arguments: {
               'phone': '+91' + phoneController.text.trim(),
-              'verificationId': state.verificationId,
             },
           );
         } else if (state is OtpSentFailed) {

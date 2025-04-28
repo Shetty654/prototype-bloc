@@ -1,28 +1,34 @@
+import 'package:CAPO/blocs/otp/otp_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-import 'package:prototype_bloc/data/repository/auth/auth_repository.dart';
-import 'package:prototype_bloc/presentation/routes/app_router.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'blocs/auth/otp/otp_bloc.dart';
+
+import 'package:CAPO/data/providers/AuthDataProvider.dart';
+import 'package:CAPO/data/repositories/auth/auth_repository.dart';
+import 'package:CAPO/presentation/routes/app_router.dart';
 
 final GetIt getIt = GetIt.instance;
+final authDataProvider = AuthDataProvider();
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
   setupLocator();
-
-  runApp(MyApp());
+  runApp(
+    RepositoryProvider(
+      create: (_) => AuthRepository(authDataProvider: authDataProvider),
+      child: BlocProvider<OtpBloc>(
+        create: (context) => OtpBloc(authRepository: getIt<AuthRepository>()),
+        child: const MyApp(),
+      ),
+    ),
+  );
 }
 
 void setupLocator() {
-  getIt.registerLazySingleton<AuthRepository>(() => AuthRepository());
+  getIt.registerSingleton<AuthDataProvider>(authDataProvider);
+  getIt.registerSingleton<AuthRepository>(
+    AuthRepository(authDataProvider: authDataProvider),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -30,14 +36,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authRepository = getIt<AuthRepository>(); // ✅ Fetching from get_it
-
-    return BlocProvider(
-      create: (context) => OtpBloc(authRepository: authRepository),
-      child: MaterialApp(
-        onGenerateRoute: AppRouter.onGeneratedRoute,
-      ),
+    return MaterialApp(
+      onGenerateRoute: AppRouter.onGeneratedRoute,
     );
   }
 }
-

@@ -1,23 +1,26 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:prototype_bloc/presentation/views/auth/verify_otp.dart';
+import 'package:CAPO/presentation/views/auth/screens/verify_otp.dart';
 
-import '../views/auth/generate_otp.dart';
-import '../views/home/home.dart';
+import '../views/auth/screens/generate_otp.dart';
+import '../views/auth/screens/sign_in.dart';
+import '../views/home/screens/home.dart';
 
 class AppRouter {
   static Route onGeneratedRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
-        return MaterialPageRoute(builder: (_) => GenerateOtp());
+        return MaterialPageRoute(builder: (_) => Home());
       case '/verifyOtp':
         final args = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
           builder:
               (_) => VerifyOtp(
                 phone: args['phone'],
-                verificationId: args['verificationId'],
               ),
+        );
+      case '/signin':
+        return MaterialPageRoute(
+            builder: (_) => SignIn()
         );
       case '/home':
         return MaterialPageRoute(builder: (_) => Home());

@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meta/meta.dart';
-import 'package:prototype_bloc/data/repository/auth/auth_repository.dart';
+import 'package:CAPO/data/repositories/auth/auth_repository.dart';
 
 part 'otp_event.dart';
 
@@ -11,7 +11,6 @@ part 'otp_state.dart';
 
 class OtpBloc extends Bloc<OtpEvent, OtpState> {
   final AuthRepository authRepository;
-
   OtpBloc({required this.authRepository}) : super(OtpInitial()) {
     on<OtpSendPressed>(_onOtpSendPressed);
     on<OtpVerifyPressed>(_onOtpVerifyPressed);
@@ -21,8 +20,8 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
       OtpSendPressed event, Emitter<OtpState> emit) async {
     emit(OtpSentInProgress());
     try {
-      final verificationId = await authRepository.sendCode(event.phone);
-      emit(OtpSentSuccess(phone: event.phone, verificationId: verificationId));
+      await authRepository.sendOtp(phone: event.phone);
+      emit(OtpSentSuccess(phone: event.phone));
     } catch (e) {
       emit(OtpSentFailed(message: e.toString()));
     }
@@ -31,13 +30,9 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
   Future<void> _onOtpVerifyPressed(
       OtpVerifyPressed event, Emitter<OtpState> emit) async {
     emit(OtpVerificationInProgress());
-
     try {
-      final user = await authRepository.verifyCode(
-        verificationId: event.verificationId,
-        otp: event.otp,
-      );
-      emit(OtpVerificationSuccess(user: user));
+      await authRepository.verifyOtp(phone: event.phone, code: event.otp);
+      emit(OtpVerificationSuccess());
     } catch (e) {
       emit(OtpVerificationFailed(message: e.toString()));
     }
