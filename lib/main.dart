@@ -8,6 +8,8 @@ import 'package:CAPO/data/providers/AuthDataProvider.dart';
 import 'package:CAPO/data/repositories/auth/auth_repository.dart';
 import 'package:CAPO/presentation/routes/app_router.dart';
 
+import 'blocs/Home/Chart/chart_bloc.dart';
+
 final GetIt getIt = GetIt.instance;
 final authDataProvider = AuthDataProvider();
 
@@ -16,9 +18,17 @@ void main() async {
   runApp(
     RepositoryProvider(
       create: (_) => AuthRepository(authDataProvider: authDataProvider),
-      child: BlocProvider<OtpBloc>(
-        create: (context) => OtpBloc(authRepository: getIt<AuthRepository>()),
-        child: const MyApp(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<OtpBloc>(
+            create: (context) =>
+                OtpBloc(authRepository: getIt<AuthRepository>()),
+          ),
+          BlocProvider(
+            create: (context) => ChartBloc(),
+          ),
+        ],
+        child: MyApp(),
       ),
     ),
   );
