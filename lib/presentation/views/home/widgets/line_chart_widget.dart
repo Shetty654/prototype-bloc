@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
@@ -22,6 +23,12 @@ class _LineChartWidgetState extends State<LineChartWidget> {
           xValueMapper: (row, _) => DateTime.parse(row['timestamp']),
           yValueMapper: (row, _) => (row['value'] as num).toDouble(),
           enableTooltip: true,
+          // markerSettings: MarkerSettings(
+          //   isVisible: true,
+          //   shape: DataMarkerType.circle,
+          //   width: 6,
+          //   height: 6,
+          // ),
         ),
       );
     });

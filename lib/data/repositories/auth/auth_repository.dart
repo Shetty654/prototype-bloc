@@ -14,4 +14,8 @@ class AuthRepository {
   Future verifyOtp({required String phone, required String code}) async {
     return await authDataProvider.verifyOtp(phone: phone, code: code);
   }
+
+  Future signIn({required String username, required String password}) async {
+    return await authDataProvider.signIn(username: username, password: password);
+  }
 }
