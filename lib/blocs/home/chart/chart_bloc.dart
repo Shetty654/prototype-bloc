@@ -23,42 +23,41 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
     on<ChartGroupSelected>(_onChartGroupSelected);
   }
 
-  Future<void> _onChartGroupSelected(ChartGroupSelected event,
-      Emitter<ChartState> emit,) async {
+  Future<void> _onChartGroupSelected(
+      ChartGroupSelected event,
+      Emitter<ChartState> emit,
+      ) async {
     emit(ChartLoadInProgress());
 
     final newGroup = event.selectedDashboard.group_name;
 
-    // If already subscribed to the same group, do nothing
-    if (_currentGroupName == newGroup && _client?.connected == true) {
+    // 1) If we're already on this group and still connected, do nothing.
+    if (newGroup == _currentGroupName && _client?.connected == true) {
       return;
     }
 
-    // Unsubscribe from previous group if needed
+    // 2) Unsubscribe / deactivate any old connection.
     if (_unsubscribe != null) {
       _unsubscribe!();
       _unsubscribe = null;
     }
+    _client?.deactivate();
+    _client = null;
 
-    // Clear old data
+    // 3) Clear old data and remember the new group
     tagDataMap.clear();
     _currentGroupName = newGroup;
 
-    // Create client if not created yet
-    _client ??= StompClient(
+    // 4) Create & configure our STOMP client
+    _client = StompClient(
       config: StompConfig(
         url: Constants.WS_BASE_URL,
         onConnect: (frame) {
-          if (_client == null) return; // Guard against null
-          print('Connected to STOMP');
-
-          // Subscribe safely
+          // Once connected, subscribe and request data
           _unsubscribe = _client!.subscribe(
             destination: "/topic/chart/$newGroup",
             callback: _onNewChartData,
           );
-
-          // Send group request
           _client!.send(
             destination: "/app/charts",
             body: newGroup,
@@ -66,63 +65,71 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
         },
         onDisconnect: (frame) {
           print('Disconnected');
-          _client = null;
         },
         onStompError: (frame) {
           print('STOMP error: ${frame.body}');
         },
         onWebSocketError: (error) {
           print('WebSocket error: $error');
-          _client = null;
         },
         onDebugMessage: (msg) => print('[STOMP] $msg'),
       ),
     );
 
-    // If already connected, re-subscribe immediately
-    if (_client!.connected) {
-      // Same logic as onConnect, but immediate
-      _unsubscribe = _client!.subscribe(
-        destination: "/topic/chart/$newGroup",
-        callback: _onNewChartData,
-      );
-
-      _client!.send(
-        destination: "/app/charts",
-        body: newGroup,
-      );
-    } else {
-      _client!.activate();
-    }
+    // 5) Activate the client. onConnect will handle the subscription.
+    _client!.activate();
   }
-
   void _onNewChartData(StompFrame frame) {
     if (frame.body != null) {
       try {
+        // Clean up the STOMP message payload
         String cleaned = frame.body!.replaceAll('\u0000', '').trim();
-        final newRows = (jsonDecode(cleaned) as List)
-            .cast<Map<String, dynamic>>();
+
+        // Decode JSON to List<Map<String, dynamic>>
+        final newRows = (jsonDecode(cleaned) as List).cast<Map<String, dynamic>>();
+
+        print('[DEBUG] Received ${newRows.length} new rows');
 
         for (final row in newRows) {
-          final tag = row['tag_name'] ?? '';
+          final tag = row['custom_name'] ?? '';
           if (tag.isEmpty) continue;
 
           final tagList = tagDataMap.putIfAbsent(tag, () => []);
           tagList.add(row);
 
-          // Keep only the latest 20 data points
+          // Limit to MAX_POINTS
           if (tagList.length > Constants.MAX_POINTS) {
             tagList.removeRange(0, tagList.length - Constants.MAX_POINTS);
           }
+
+          for (final entry in tagDataMap.entries) {
+            print('[DEBUG] Tag: ${entry.key} | Total Points: ${entry.value.length}');
+          }
+
+          print('[DEBUG] Tag: $tag | Total Points: ${tagList.length}');
         }
-        emit(ChartDataUpdated(
-          raw: Map.fromEntries(
-            tagDataMap.entries.map(
-                  (e) => MapEntry(e.key, List<Map<String, dynamic>>.from(e.value)),
+        final tagCounts = <String, int>{};
+        for (final row in newRows) {
+          final tag = row['custom_name'] ?? '';
+          tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
+        }
+        print('[DEBUG] Per-tag counts from incoming data:');
+        tagCounts.forEach((tag, count) => print('  $tag => $count'));
+        // Emit the updated chart state with copied data
+        emit(
+          ChartDataUpdated(
+            raw: Map.fromEntries(
+              tagDataMap.entries.map(
+                    (e) => MapEntry(
+                  e.key,
+                  List<Map<String, dynamic>>.from(e.value),
+                ),
+              ),
             ),
           ),
-        ));
+        );
       } catch (e) {
+        print('[ERROR] Data parsing error: $e');
         emit(ChartLoadFailure(message: 'Data parsing error'));
       }
     }
