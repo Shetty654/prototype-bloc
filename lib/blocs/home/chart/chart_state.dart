@@ -11,12 +11,21 @@ final class ChartInitial extends ChartState {
 
 class ChartLoadInProgress extends ChartState {}
 
-class ChartDataUpdated extends ChartState {
+class ChartLiveUpdated extends ChartState {
   final Map<String, List<Map<String, dynamic>>> raw;
-  ChartDataUpdated({required this.raw});
+  ChartLiveUpdated({required this.raw});
 }
+
+class ChartHistoricalUpdated extends ChartState {
+  final Map<String, List<Map<String, dynamic>>> raw;
+  final int offset; // so UI knows “which page” it is
+  ChartHistoricalUpdated({required this.raw, required this.offset});
+}
+
 
 class ChartLoadFailure extends ChartState {
   final String message;
   ChartLoadFailure({required this.message});
 }
+
+class ChartLiveStopped extends ChartState {}

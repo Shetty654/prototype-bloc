@@ -16,19 +16,31 @@ class _LineChartWidgetState extends State<LineChartWidget> {
     final List<LineSeries<Map<String, dynamic>, DateTime>> seriesList = [];
 
     widget.raw.forEach((tag, dataPoints) {
+      if (dataPoints.isEmpty) return;
+
+      final lastValue = dataPoints.last['value'];
+      if (lastValue is! num) {
+        debugPrint("Skipping non-numeric tag from chart: $tag");
+        return;
+      }
       seriesList.add(
         LineSeries<Map<String, dynamic>, DateTime>(
           name: tag,
-          dataSource: dataPoints,
+          dataSource: dataPoints.where((e) => e['value'] is num || e['value'] is bool).toList(),
           xValueMapper: (row, _) => DateTime.parse(row['timestamp']),
-          yValueMapper: (row, _) => (row['value'] as num).toDouble(),
+          yValueMapper: (row, _) {
+            final val = row['value'];
+            if (val is bool) return val ? 1.0 : 0.0;
+            if (val is num) return val.toDouble();
+            return 0.0;
+          },
           enableTooltip: true,
-          // markerSettings: MarkerSettings(
-          //   isVisible: true,
-          //   shape: DataMarkerType.circle,
-          //   width: 6,
-          //   height: 6,
-          // ),
+          markerSettings: MarkerSettings(
+            isVisible: true,
+            shape: DataMarkerType.circle,
+            width: 6,
+            height: 6,
+          ),
         ),
       );
     });
@@ -36,6 +48,10 @@ class _LineChartWidgetState extends State<LineChartWidget> {
     return SfCartesianChart(
       title: ChartTitle(text: 'Live-updates'),
       legend: Legend(isVisible: true),
+      zoomPanBehavior: ZoomPanBehavior(
+        enablePanning: true,
+        enablePinching: true,
+      ),
       // Show legend with tag names
       trackballBehavior: TrackballBehavior(
         enable: true,
@@ -48,7 +64,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
       ),
       primaryXAxis: DateTimeAxis(
         intervalType: DateTimeIntervalType.seconds,
-        dateFormat: DateFormat('dd:HH:mm:ss'),
+        dateFormat: DateFormat('HH:mm:ss'),
       ),
       series: seriesList,
     );

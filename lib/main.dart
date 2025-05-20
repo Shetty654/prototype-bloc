@@ -3,7 +3,9 @@ import 'package:CAPO/blocs/home/dashboard/dashboard_bloc.dart';
 import 'package:CAPO/blocs/home/home_bloc.dart';
 import 'package:CAPO/blocs/otp/otp_bloc.dart';
 import 'package:CAPO/blocs/project/project_bloc.dart';
+import 'package:CAPO/data/providers/ChartDataProvider.dart';
 import 'package:CAPO/data/providers/DashboardDataProvider.dart';
+import 'package:CAPO/data/repositories/home/chart/chart_repository.dart';
 import 'package:CAPO/data/repositories/home/dashboard/dashboard_repository.dart';
 import 'package:CAPO/presentation/views/home/screens/home.dart';
 import 'package:flutter/cupertino.dart';
@@ -26,6 +28,7 @@ void setupLocator() {
   getIt.registerSingleton<AuthDataProvider>(AuthDataProvider());
   getIt.registerSingleton<ProjectDataProvider>(ProjectDataProvider());
   getIt.registerSingleton<DashboardDataProvider>(DashboardDataProvider());
+  getIt.registerSingleton<ChartDataProvider>(ChartDataProvider());
 
   // Repositories
   getIt.registerSingleton<AuthRepository>(
@@ -36,6 +39,9 @@ void setupLocator() {
   );
   getIt.registerSingleton<DashboardRepository>(
     DashboardRepository(dashboardDataProvider: getIt<DashboardDataProvider>()),
+  );
+  getIt.registerSingleton<ChartRepository>(
+    ChartRepository(chartDataProvider: getIt<ChartDataProvider>()),
   );
 }
 
@@ -61,6 +67,9 @@ class AppRoot extends StatelessWidget {
         RepositoryProvider<DashboardRepository>(
           create: (_) => getIt<DashboardRepository>(),
         ),
+        RepositoryProvider<ChartRepository>(
+            create: (_) => getIt<ChartRepository>(),
+        )
       ],
       child: MultiBlocProvider(
         providers: [
@@ -80,7 +89,9 @@ class AppRoot extends StatelessWidget {
             )..add(ProjectListRequested()),
           ),
           BlocProvider<ChartBloc>(
-            create: (context) => ChartBloc(),
+            create: (context) => ChartBloc(
+              chartRepository: context.read<ChartRepository>()
+            ),
           ),
           BlocProvider<HomeBloc>(
             create: (context) => HomeBloc(
