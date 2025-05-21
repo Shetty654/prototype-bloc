@@ -23,42 +23,44 @@ class ChartContainer extends StatefulWidget {
 }
 
 class _ChartContainerState extends State<ChartContainer> {
-  int _offset = 0;
+  int? _historicalBeforeTs;
+  final int _windowSec = Constants.MAX_POINTS;
 
-  bool get _isLive => _offset == 0;
-
+  bool get _isLive => _historicalBeforeTs == null;
   Dashboard get _dash => widget.dashboards[widget.currentIndex];
 
   void _pageBack() {
-    setState(() => _offset += Constants.MAX_POINTS);
-    context.read<ChartBloc>().add(StopLiveUpdates()); // stop live updates first
-    context.read<ChartBloc>().add(
-      FetchHistoricalChart(
-        dashboard: _dash,
-        offset: _offset,
-        projectName: widget.projectName,
-      ),
-    );
+    final now = DateTime.now().millisecondsSinceEpoch;
+    _historicalBeforeTs ??= now;
+    _historicalBeforeTs = _historicalBeforeTs! - (_windowSec * 1000);
+
+    context.read<ChartBloc>().add(StopLiveUpdates());
+    context.read<ChartBloc>().add(FetchHistoricalChart(
+      dashboard: _dash,
+      projectName: widget.projectName,
+      beforeTs: _historicalBeforeTs!,
+    ));
   }
 
+
   void _pageForward() {
-    if (_offset > 0) {
-      setState(() => _offset -= Constants.MAX_POINTS);
-      if (_offset == 0) {
-        // back to live: start live updates
-        context.read<ChartBloc>().add(
-          ChartGroupSelected(selectedDashboard: _dash),
-        );
-      } else {
-        // still historical
-        context.read<ChartBloc>().add(FetchHistoricalChart(
-          dashboard: _dash,
-          offset: _offset,
-          projectName: widget.projectName,
-        ));
-      }
+    if (_historicalBeforeTs == null) return;
+
+    _historicalBeforeTs = _historicalBeforeTs! + (_windowSec * 1000);
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    if (_historicalBeforeTs! >= now) {
+      _historicalBeforeTs = null;
+      context.read<ChartBloc>().add(ChartGroupSelected(selectedDashboard: _dash));
+    } else {
+      context.read<ChartBloc>().add(FetchHistoricalChart(
+        dashboard: _dash,
+        projectName: widget.projectName,
+        beforeTs: _historicalBeforeTs!,
+      ));
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

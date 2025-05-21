@@ -18,8 +18,7 @@ class ChartLiveUpdated extends ChartState {
 
 class ChartHistoricalUpdated extends ChartState {
   final Map<String, List<Map<String, dynamic>>> raw;
-  final int offset; // so UI knows “which page” it is
-  ChartHistoricalUpdated({required this.raw, required this.offset});
+  ChartHistoricalUpdated({required this.raw});
 }
 
 

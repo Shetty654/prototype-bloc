@@ -20,7 +20,6 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
   Function? _unsubscribe; // holds the unsubscribe function
   final Map<String, List<Map<String, dynamic>>> tagDataMap = {};
   String? _currentGroupName;
-  int _offset = 0;
   Dashboard? _currentDashboard;
 
   ChartBloc({required this.chartRepository}) : super(ChartInitial()) {
@@ -163,7 +162,6 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
   }
 
   FutureOr<void> _onStartLiveChart(StartLiveChart event, Emitter<ChartState> emit) {
-    _offset=0;
     add(ChartGroupSelected(selectedDashboard: event.dashboard));
   }
 
@@ -172,8 +170,8 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
     try{
       final data = await chartRepository.fetchHistoricalData(projectName: event.projectName,
         groupName: event.dashboard.group_name,
-        limit: event.limit,
-        offset: event.offset,
+        beforeTS: event.beforeTs,
+        windowSec: event.windowSec,
       );
       tagDataMap..clear()..addAll(data);
       emit(ChartHistoricalUpdated(
@@ -183,7 +181,6 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
             List<Map<String, dynamic>>.from(e.value),
           )),
         ),
-        offset: _offset,
       ));
     }catch(e){
       emit(ChartLoadFailure(message: 'Failed to load historical data: $e'));

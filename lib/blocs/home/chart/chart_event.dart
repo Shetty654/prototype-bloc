@@ -15,10 +15,10 @@ final class StartLiveChart extends ChartEvent{
 
 final class FetchHistoricalChart extends ChartEvent{
   final Dashboard dashboard;
-  final limit = Constants.MAX_POINTS;
-  final int offset;
   final String projectName;
-  FetchHistoricalChart({required this.dashboard, required this.offset, required this.projectName});
+  final int beforeTs;
+  final windowSec = Constants.MAX_POINTS;
+  FetchHistoricalChart({required this.dashboard, required this.beforeTs, required this.projectName});
 }
 
 class StopLiveUpdates extends ChartEvent {}

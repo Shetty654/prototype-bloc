@@ -5,13 +5,13 @@ import 'package:CAPO/constants/constants.dart';
 import 'package:http/http.dart' as http;
 
 class ChartDataProvider{
-  Future fetchHistoricalData({required String projectName, required String groupName, required int offset, required int limit}) async {
+  Future fetchHistoricalData({required String projectName, required String groupName, required int beforeTS, required int windowSec}) async {
     final uri = Uri.parse("${Constants.BASE_URL}home/historical_data").replace(
       queryParameters: {
         'projectName': projectName,
         'groupName':  groupName,
-        'limit':       limit.toString(),
-        'offset':      offset.toString(),
+        'beforeTS':   beforeTS.toString(),
+        'windowSec':   windowSec.toString(),
       },
     );
     final response = await http.get(uri);

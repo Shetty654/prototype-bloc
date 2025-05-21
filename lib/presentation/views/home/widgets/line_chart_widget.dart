@@ -64,7 +64,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
       ),
       primaryXAxis: DateTimeAxis(
         intervalType: DateTimeIntervalType.seconds,
-        dateFormat: DateFormat('HH:mm:ss'),
+        dateFormat: DateFormat('mm:ss'),
       ),
       series: seriesList,
     );
