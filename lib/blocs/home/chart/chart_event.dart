@@ -21,4 +21,16 @@ final class FetchHistoricalChart extends ChartEvent{
   FetchHistoricalChart({required this.dashboard, required this.beforeTs, required this.projectName});
 }
 
+final class FetchChartByDate extends ChartEvent {
+  final Dashboard dashboard;
+  final String projectName;
+  final String date;
+
+  FetchChartByDate({
+    required this.dashboard,
+    required this.projectName,
+    required this.date,
+  });
+}
+
 class StopLiveUpdates extends ChartEvent {}

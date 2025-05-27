@@ -12,7 +12,7 @@ final class ChartInitial extends ChartState {
 class ChartLoadInProgress extends ChartState {}
 
 class ChartLiveUpdated extends ChartState {
-  final Map<String, List<Map<String, dynamic>>> raw;
+  final List<Map<String, dynamic>> raw;
   ChartLiveUpdated({required this.raw});
 }
 
@@ -21,6 +21,10 @@ class ChartHistoricalUpdated extends ChartState {
   ChartHistoricalUpdated({required this.raw});
 }
 
+class ChartEmpty extends ChartState {
+  final String message;
+  ChartEmpty({required this.message});
+}
 
 class ChartLoadFailure extends ChartState {
   final String message;

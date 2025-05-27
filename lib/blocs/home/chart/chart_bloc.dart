@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:CAPO/constants/constants.dart';
 import 'package:CAPO/data/models/dashboard.dart';
@@ -27,6 +28,7 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
     on<StartLiveChart>(_onStartLiveChart);
     on<FetchHistoricalChart>(_onFetchHistoricalChart);
     on<StopLiveUpdates>(_onStopLiveUpdates);
+    on<FetchChartByDate>(_onFetchChartByDate);
   }
 
   Future<void> _onStopLiveUpdates(
@@ -106,49 +108,20 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
     _client!.activate();
   }
   void _onNewChartData(StompFrame frame) {
-    if (frame.body != null) {
-      try {
-        // Clean up the STOMP message payload
-        String cleaned = frame.body!.replaceAll('\u0000', '').trim();
+    if (frame.body == null) return;
 
-        // Decode JSON to List<Map<String, dynamic>>
-        final newRows = (jsonDecode(cleaned) as List).cast<Map<String, dynamic>>();
+    try {
+      // 1) Clean up and decode the incoming message payload
+      final cleaned = frame.body!
+          .replaceAll('\u0000', '')
+          .trim();
+      final dataPoint = (jsonDecode(cleaned) as List)
+          .cast<Map<String, dynamic>>();
 
-        for (final row in newRows) {
-          final tag = row['custom_name'] ?? '';
-          if (tag.isEmpty) continue;
-
-          final tagList = tagDataMap.putIfAbsent(tag, () => []);
-          tagList.add(row);
-
-          // Limit to MAX_POINTS
-          if (tagList.length > Constants.MAX_POINTS) {
-            tagList.removeRange(0, tagList.length - Constants.MAX_POINTS);
-          }
-
-        }
-        final tagCounts = <String, int>{};
-        for (final row in newRows) {
-          final tag = row['custom_name'] ?? '';
-          tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
-        }
-        tagCounts.forEach((tag, count) => print('  $tag => $count'));
-        // Emit the updated chart state with copied data
-        emit(
-          ChartLiveUpdated(
-            raw: Map.fromEntries(
-              tagDataMap.entries.map(
-                    (e) => MapEntry(
-                  e.key,
-                  List<Map<String, dynamic>>.from(e.value),
-                ),
-              ),
-            ),
-          ),
-        );
-      } catch (e) {
-        emit(ChartLoadFailure(message: 'Data parsing error'));
-      }
+      // 3) Emit only that map of newly appended points
+      emit(ChartLiveUpdated(raw: dataPoint));
+    } catch (e) {
+      emit(ChartLoadFailure(message: 'Data parsing error'));
     }
   }
 
@@ -173,6 +146,33 @@ class ChartBloc extends Bloc<ChartEvent, ChartState> {
         beforeTS: event.beforeTs,
         windowSec: event.windowSec,
       );
+      tagDataMap..clear()..addAll(data);
+      emit(ChartHistoricalUpdated(
+        raw: Map.fromEntries(
+          tagDataMap.entries.map((e) => MapEntry(
+            e.key,
+            List<Map<String, dynamic>>.from(e.value),
+          )),
+        ),
+      ));
+    }catch(e){
+      emit(ChartLoadFailure(message: 'Failed to load historical data: $e'));
+    }
+  }
+
+  FutureOr<void> _onFetchChartByDate(FetchChartByDate event, Emitter<ChartState> emit) async {
+    emit(ChartLoadInProgress());
+    try{
+      final data = await chartRepository.fetchChartByDate(
+        projectName: event.projectName,
+        groupName: event.dashboard.group_name,
+        date: event.date,
+      );
+      print(data);
+      if (data.isEmpty) {
+        emit(ChartEmpty(message: 'No data available for the selected date.'));
+        return;
+      }
       tagDataMap..clear()..addAll(data);
       emit(ChartHistoricalUpdated(
         raw: Map.fromEntries(

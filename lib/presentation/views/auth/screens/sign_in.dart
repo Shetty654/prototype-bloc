@@ -53,7 +53,16 @@ class _SignInState extends State<SignIn> {
                   ),
                 ),
                 SizedBox(height: 12.0,),
-                ElevatedButton(onPressed: () {
+                ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white, // red color
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0), // smaller padding
+                      textStyle: const TextStyle(fontSize: 14), // smaller font
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8), // small rounded corners
+                      ),
+                    ),
+                    onPressed: () {
                   String username = usernameController.text;
                   String password = passwordController.text;
                   BlocProvider.of<AuthBloc>(context).add(

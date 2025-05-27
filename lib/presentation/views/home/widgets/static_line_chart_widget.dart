@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
 
-class LineChartWidget extends StatefulWidget {
+class StaticLineChartWidget extends StatefulWidget {
   final Map<String, List<Map<String, dynamic>>> raw;
-  const LineChartWidget({super.key, required this.raw});
+  const StaticLineChartWidget({super.key, required this.raw});
   @override
-  State<LineChartWidget> createState() => _LineChartWidgetState();
+  State<StaticLineChartWidget> createState() => _LineChartWidgetState();
 }
 
-class _LineChartWidgetState extends State<LineChartWidget> {
+class _LineChartWidgetState extends State<StaticLineChartWidget> {
   @override
   Widget build(BuildContext context) {
     final List<LineSeries<Map<String, dynamic>, DateTime>> seriesList = [];
@@ -46,7 +46,6 @@ class _LineChartWidgetState extends State<LineChartWidget> {
     });
 
     return SfCartesianChart(
-      title: ChartTitle(text: 'Live-updates'),
       legend: Legend(isVisible: true),
       zoomPanBehavior: ZoomPanBehavior(
         enablePanning: true,
@@ -64,7 +63,7 @@ class _LineChartWidgetState extends State<LineChartWidget> {
       ),
       primaryXAxis: DateTimeAxis(
         intervalType: DateTimeIntervalType.seconds,
-        dateFormat: DateFormat('mm:ss'),
+        dateFormat: DateFormat('HH:mm:ss'),
       ),
       series: seriesList,
     );

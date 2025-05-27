@@ -33,4 +33,32 @@ class ChartDataProvider{
       throw Exception('Failed to load historical data');
     }
   }
+
+  Future fetchChartByDate({required String projectName, required String groupName, required String date}) async {
+    final uri = Uri.parse("${Constants.BASE_URL}home/data_by_date").replace(
+      queryParameters: {
+        'projectName': projectName,
+        'groupName':  groupName,
+        'date': date,
+      },
+    );
+    print(uri);
+    final response = await http.get(uri);
+    if(response.statusCode == HttpStatus.ok){
+      final body = jsonDecode(response.body);
+      if (body['status'] == 'no_data') {
+        return {};
+      }
+      final tagsData = body['tagsData'] as List;
+      final Map<String, List<Map<String, dynamic>>> parsedData = {};
+      for(final tagEntry in tagsData){
+        final tagName = tagEntry['custom_name'];
+        final dataList = List<Map<String, dynamic>>.from(tagEntry['data']);
+        parsedData[tagName] = dataList;
+      }
+      return parsedData;
+    }else{
+      throw Exception('Failed to load historical data');
+    }
+  }
 }
