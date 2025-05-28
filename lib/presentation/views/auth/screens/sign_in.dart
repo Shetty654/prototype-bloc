@@ -56,6 +56,7 @@ class _SignInState extends State<SignIn> {
                 ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white, // red color
+                      elevation: 3,
                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0), // smaller padding
                       textStyle: const TextStyle(fontSize: 14), // smaller font
                       shape: RoundedRectangleBorder(

@@ -27,6 +27,7 @@ class DashboardControls extends StatelessWidget {
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
+                  elevation: 3,
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16.0, vertical: 6.0),
                   textStyle: const TextStyle(fontSize: 14),
@@ -65,6 +66,7 @@ class DashboardControls extends StatelessWidget {
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
+                  elevation: 3,
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16.0, vertical: 6.0),
                   textStyle: const TextStyle(fontSize: 14),
